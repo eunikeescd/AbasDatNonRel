@@ -1,5 +1,5 @@
 //Narasi : Mencari tempat penginapan untuk berlibur dengan melihat negara dan tipe properti yang tersedia dengan budget ≤1000 usd. User ingin melihat data yang tersedia berdasarkan negara dan properti serta rata-rata dari harga dan akomodasi, jangka waktu penginapan, dan juga akan menampilkan penginapan yang tersedia.
-
+//Kelompok : 71210695	Cahaya Sampebua, 71210734	Eunike Meilanie 
 
 use sample_airbnb;
 
