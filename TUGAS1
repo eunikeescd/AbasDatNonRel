@@ -1,0 +1,59 @@
+//Narasi : Mencari tempat penginapan untuk berlibur dengan melihat negara dan tipe properti yang tersedia dengan budget ≤1000 usd. User ingin melihat data yang tersedia berdasarkan negara dan properti serta rata-rata dari harga dan akomodasi, jangka waktu penginapan, dan juga akan menampilkan penginapan yang tersedia.
+
+
+use sample_airbnb;
+
+db.listingsAndReviews.aggregate([
+  {
+    $match: {
+      accommodates: { $gte: 5, $lte: 12 },
+      $expr: { $lte: [{ $sum: ["$price", "$cleaning_fee", "$security_deposit"] }, 1000] },
+      property_type: { $in: ["Hotel", "Villa", "Apartment"] }
+    }
+  },
+  {
+    $group: {
+      _id: { country: "$address.country", property_type: "$property_type" },
+      averagePrice: { $avg: { $sum: ["$price", "$cleaning_fee", "$security_deposit"] } },
+      averageAccommodates: { $avg: "$accommodates" },
+      min_nights: { $min: "$minimum_nights" },
+      max_nights: { $max: "$maximum_nights" },
+      room_type: { $addToSet: "$room_type" },
+      address: { $first: "$address.street" },
+      available_rooms: { $sum: { $cond: { if: { $eq: ["$room_type", "Entire home/apt"] }, then: 1, else: 0 } } }
+    }
+  },
+  {
+    $match: {
+      available_rooms: { $gt: 0 }
+    }
+  },
+  {
+    $sort: { "averagePrice": 1 }
+  },
+  {
+    $group: {
+      _id: "$_id.country",
+      property: { $first: "$$ROOT" }
+    }
+  },
+  {
+    $replaceRoot: { newRoot: "$property" }
+  },
+  {
+    $project: {
+      _id: 0,
+      property_type: "$_id.property_type",
+      country: "$_id.country",
+      address: "$address",
+      min_nights: { $toString: "$min_nights" },
+      max_nights: { $toString: "$max_nights" },
+      available_rooms: 1,
+      averageAccommodates: { $round: ["$averageAccommodates", 0] },
+      averagePrice: { $concat: [{ $toString: { $round: ["$averagePrice", 2] } }, " USD"] }
+    }
+  },
+  {
+    $sort: { "country": 1, "property_type": 1 }
+  }
+])
